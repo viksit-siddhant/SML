@@ -22,6 +22,14 @@ class Dataset:
     def to_one_hot(self):
         if self.y is None:
             raise Exception('No labels found in dataset')
-        new_y = np.zeros((self.y.shape[0],self.num_classes))
-        new_y[:,self.y] = 1
-        self.y = new_y
+        #Convert labels to one-hot encoding
+        self.y = np.eye(self.num_classes)[self.y]
+
+    def get_cat_to_label(self):
+        return dict(zip(self.labels.values(),self.labels.keys()))
+
+def write_to_csv(path,labels,mapping):
+    df = pd.DataFrame({'Id':list(range(len(labels))),
+                    'Category':[mapping[i] for i in labels]})
+    df.set_index('Id',inplace=True)
+    df.to_csv(path)
