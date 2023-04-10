@@ -6,9 +6,9 @@ from sklearn.model_selection import train_test_split
 class Net(nn.Module):
     def __init__(self, input_size):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(input_size, 64)
+        self.fc1 = nn.Linear(input_size, 20)
         self.relu = nn.Tanh()
-        self.fc2 = nn.Linear(64, 20)
+        self.fc2 = nn.Linear(20, 20)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
