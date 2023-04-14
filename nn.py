@@ -1,14 +1,16 @@
-import torch
 import torch.nn as nn
 import numpy as np
-from sklearn.model_selection import train_test_split
+import torch
 
 class Net(nn.Module):
-    def __init__(self, input_size):
+    def __init__(self, input_size,hidden_size,activation='relu'):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(input_size, 20)
-        self.relu = nn.Tanh()
-        self.fc2 = nn.Linear(20, 20)
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        if activation == 'relu':
+            self.relu = nn.ReLU()
+        elif activation == 'tanh':
+            self.relu = nn.Tanh()
+        self.fc2 = nn.Linear(hidden_size, 20)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
@@ -19,44 +21,61 @@ class Net(nn.Module):
         return out
 
 class Dataset(torch.utils.data.Dataset):
+    '''
+Only for internal use by NNEstimator
+    '''
     def __init__(self,x,y):
-        self.x = torch.from_numpy(x).float()
-        self.y = torch.from_numpy(y).long()
+        self.x = x
+        self.y = y
+    
     def __len__(self):
         return len(self.x)
+    
     def __getitem__(self,idx):
-        return self.x[idx], self.y[idx]
+        return self.x[idx],self.y[idx]
 
-def train(x,y, validation_split = 0.1, epochs = 100,path='model.pth',baseline=0,weight_decay = 2*10e-5):
-    model = Net(x.shape[1])
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(),weight_decay=weight_decay,lr = 0.001)
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=validation_split)
 
-    train_dataset = torch.utils.data.DataLoader(Dataset(x_train,y_train),batch_size=32,shuffle=True)
-    test_dataset = torch.utils.data.DataLoader(Dataset(x_test,y_test),batch_size=32,shuffle=True)
-    max_val_acc = baseline
-    for epoch in range(epochs):
-        num_correct = 0
-        num_samples = 0
-        for x_train, y_train in train_dataset:
+class NNEstimator:
+    def __init__(self,lr=0.01,epochs=100,hidden_size=100,activation='relu',weight_decay=0.0,optimizer='adam',momentum=0.9):
+        self.lr = lr
+        self.epochs = epochs
+        self.hidden_size = hidden_size
+        self.activation = activation
+        self.model = None
+        self.optimizer = optimizer
+        self.weight_decay = weight_decay
+        self.momentum = momentum
+    
+    def fit(self,X,y):
+        self.model= Net(X.shape[1],self.hidden_size,self.activation)
+        X = torch.from_numpy(X).float()
+        y = torch.from_numpy(y).long()
+
+        if self.optimizer == 'adam':
+            optimizer = torch.optim.Adam(self.model.parameters(),lr=self.lr,weight_decay=self.weight_decay)
+        elif self.optimizer == 'sgd':
+            optimizer = torch.optim.SGD(self.model.parameters(),lr=self.lr,weight_decay=self.weight_decay,momentum=self.momentum)
+        criterion = nn.CrossEntropyLoss()
+
+        for epoch in range(self.epochs):
             optimizer.zero_grad()
-            outputs = model(x_train)
-            loss = criterion(outputs, y_train)
+            outputs = self.model(X)
+            loss = criterion(outputs, y)
             loss.backward()
             optimizer.step()
-            num_correct += (outputs.argmax(1) == y_train).sum()
-            num_samples += outputs.shape[0]
-        print(f'Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}')
-        with torch.no_grad():
-            num_correct = 0
-            num_samples = 0
-            for x_test, y_test in test_dataset:
-                outputs = model(x_test)
-                num_correct += (outputs.argmax(1) == y_test).sum()
-                num_samples += outputs.shape[0]
-            val_acc = num_correct/num_samples
-            if val_acc > max_val_acc:
-                max_val_acc = val_acc
-                torch.save(model.state_dict(), path)
-    return max_val_acc
+            print(torch.argmax(outputs,dim=1)[:10])
+    
+    def predict(self,X):
+        if self.model is None:
+            raise Exception('Model not trained')
+        X = torch.from_numpy(X).float()
+        outputs = self.model(X).detach().cpu().numpy()
+        return np.argmax(outputs,axis=1)
+    
+    def score(self,X,y):
+        if self.model is None:
+            raise Exception('Model not trained')
+        out = self.predict(X)
+        return np.mean(out==y)
+
+        
