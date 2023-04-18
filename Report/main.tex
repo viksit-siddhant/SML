@@ -77,11 +77,11 @@
 
     \subsection{Dimensionality Reduction}
     \label{sec:dimred}
-    Dimensionality reduction is the transformation of data from a high-dimensional space into a low-dimensional space in a way that
+    Dimensionality reduction is the transformation of data from a high-dimensional space onto a low-dimensional space in a way that
     retains the most meaningful and prominent properties of the original data, ideally close to its intrinsic dimension.
     Owing to the curse of dimensionality, dimensionality reduction is a common preprocessing step in machine learning.
 
-    This project makes use of the Principal Component Analysis and Linear Discriminant Analysis algorithms for projection of features into a lower-dimensional space.
+    This project makes use of the Principal Component Analysis and Linear Discriminant Analysis algorithms for projection of features onto a lower-dimensional space.
     \vspace*{3.0pt}
 
     \subsubsection{Principal Component Analysis (PCA)}
@@ -96,7 +96,7 @@
     \label{sec:lda}
     A supervised statistical procedure used for dimensionality reduction by separating the features in a way that maximizes inter-class and minimizes intra-class variance.
     The resulting features are linear combinations (weighted sums) called \textit{discriminant functions} of the original features that best explain the dataset and are used to
-    project the data into a lower-dimensional space.
+    project the data onto a lower-dimensional space.
 
     \subsection{Anomaly (Outlier) Detection}
     \label{sec:outlier}
@@ -119,7 +119,7 @@
 
     \subsection{Data Analysis and Sanity Check}
     \label{sec:dataanalysis}
-    To analyze the dataset, 10 images selected at random were plotted in a 64 $times$ 64 plot, but the results were not meaningful.
+    To analyze the dataset, 10 images selected at random were plotted in a 64 $\times$ 64 plot, but the results were not meaningful.
     It was concluded that the features of the dataset must have been shuffled to prevent cheating in the contest by visualizing
     the data and submitting a manually labeled CSV file.
 
@@ -134,7 +134,7 @@
     \subsubsection{Outlier Detection}
     \label{sec:outlierdetection}
     It was clear that the dataset was sparse in 4096 (flattened) dimensions.
-    Since it had a large number of dimensions and only a very few training samples, it was only reasonable to tune the
+    Since it had a large number of dimensions and only a few training samples, it was only reasonable to tune the
     Local Outlier Factor algorithm to detect only the most extreme outliers.
     This resulted in the removal of less than 16 images from the dataset.
 
@@ -187,9 +187,9 @@
 
     \subsubsection{Gradient Boosting}
     \label{sec:gb}
-    A predictive modelling technique that produces a prediction model in the form of an ensemble of weak prediction models, typically decision trees,
+    A predictive technique that produces a model in the form of an ensemble of weaker prediction models, typically decision trees,
     where each subsequent learner tries to correct the errors made by its predecessors.
-    Known for its invariability to overfitting, it was one of the first algorithm tested for the task.
+    Known for its invariability to overfitting, it was one of the first algorithms tested for the task.
 
     However, the gradient boosting model was found to be dissatisfactory, as it was unable to generalize well on the validation set.
 
@@ -199,7 +199,7 @@
     Although the dimensionality of the dataset was reduced, the random forest model was found to be overfitting on the training set
     and was unable to perform any better than the other models.
 
-    \subsubsection{Gaussian Naive Bayes}
+    \subsubsection{(Gaussian) Naive Bayes}
     \label{sec:gnb}
     A probabilistic classifier based on Bayes' theorem with an assumption of independence between every pair of features.
     Known for its accurate performance on small datasets, an attempt was made to transform the dataset into a Gaussian distribution using the Box-Cox transformation to use it.
@@ -210,8 +210,8 @@
     A model having interconnected layers of mathematical functions (neurons) to apply activation functions on inputs from the previous layers to produce subsequent outputs.
     The neural network was found to be one of the most suitable models for the task, as it was able to learn well on the limited dataset available.
 
-    Surprisingly, the score of the neural network model dropped down when the full testing dataset was used.
-    Hence, the model was not used for the final submission.
+    Surprisingly, the score of the neural network model dropped when the full testing dataset was used.
+    Hence, this model was not considered for the final evaluation.
 
     \subsubsection{Multinomial Logistic Regression}
     (Described in Section \ref{sec:lr}) \\
@@ -227,7 +227,6 @@
 
     A pipeline was constructed having PCA, LDA, and Logistic Regression as the steps.
     Invariably, they were tested with different lists of hyperparameters and cross validated using $k$-fold cross validation technique.
-    The grid search returned the following hyperparameters for the final model:
 
     \begin{table}[htbp]
         \caption{Final Hyperparameters found by Grid Search}
@@ -265,9 +264,9 @@
         \begin{tikzpicture}[node distance=2cm]
             \node (a) [rectangle, draw, text width=5cm, minimum height=1cm, text centered] {\textbf{Outlier Detection} \\ LOF algorithm to remove upto 16 outliers};
             \node (b) [rectangle, draw, text width=5cm, minimum height=1cm, text centered, below of=a] {\textbf{Standardization} \\ to remove the effect of different scales};
-            \node (c) [rectangle, draw, text width=5cm, minimum height=1cm, text centered, below of=b] {\textbf{Grid Search} \\ to find the optimal hyperparameters};
-            \node (e) [rectangle, draw, text width=5cm, minimum height=1cm, text centered, below of=c] {\textbf{PCA} \\ to reduce capture upto 98\% of the variance};
-            \node (f) [rectangle, draw, text width=5cm, minimum height=1cm, text centered, below of=e] {\textbf{LDA} \\ to optimally separate data into 19 clusters};
+            \node (c) [rectangle, draw, text width=5cm, minimum height=1cm, text centered, below of=b] {\textbf{Grid Search} \\ to find optimal hyperparameters for following algorithms};
+            \node (e) [rectangle, draw, text width=5cm, minimum height=1cm, text centered, below of=c] {\textbf{Dimensionality Reduction} \\ PCA to explain upto 98\% of the variance};
+            \node (f) [rectangle, draw, text width=5cm, minimum height=1cm, text centered, below of=e] {\textbf{Dimensionality Reduction} \\ LDA to capture the separation of data into 19 clusters};
             \node (d) [rectangle, draw, text width=8cm, minimum height=6cm, text centered, below of=e] {};
             \node (g) [rectangle, draw, text width=5cm, minimum height=1cm, text centered, below of=f] {\textbf{Logistic Regression} \\ for final classification};
 
