@@ -1,2 +1,7 @@
 *.csv
 *.pyc
+Report/*.aux
+Report/*.log
+Report/*.fls
+Report/*.fdb_latexmk
+Report/*.synctex.gz
