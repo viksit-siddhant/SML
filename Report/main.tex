@@ -42,7 +42,7 @@
         This report presents the findings from the course project for \textit{Statistical Machine Learning},
         held as a Kaggle contest to build a machine learning model for fruit-classification.
         The goal was to achieve the highest accuracy across a leaderboard of 50+ teams.
-        A Logistic Regression model achieved the best score, attaining an accuracy of 0.82692.
+        A Logistic Regression model achieved the best score, attaining an accuracy of 0.825+.
     \end{abstract}
 
     \begin{IEEEkeywords}
@@ -119,11 +119,33 @@
 
     \subsection{Data Analysis and Sanity Check}
     \label{sec:dataanalysis}
-    To analyze the dataset, 10 images selected at random were plotted in a 64 $\times$ 64 plot, but the results were not meaningful.
-    It was concluded that the features of the dataset must have been shuffled to prevent cheating in the contest by visualizing
+    The main analysis is done to identify the distribution of the classes.
+    This is done by generating a a bar graph of frequencies of each class in the training dataset.
+    The dataset was found to be slighlty skewed in terms of class-distribution.
+    The class \textit{Leeche\_Raw} appeared in 37 samples only, while the class \textit{Banana\_Ripe} had the highest number of samples at 86.
+    An average of 60 samples were present in each class.
+
+    \begin{figure}[htbp]
+        \centerline{\includegraphics[width=0.55\textwidth]{Assets/distribution.png}}
+        \caption{Distribution of classes in the training dataset}
+        \label{fig:distribution}
+    \end{figure}
+
+    Clearly, the distribution of the classes shown in Fig.~\ref{fig:distribution} was non-uniform and non-gaussian.
+
+    As a sanity check on the dataset, 10 images selected at random were plotted in a 64 $\times$ 64 plot, but the results were not meaningful.
+    On repeated testing, it was concluded that the features of the dataset must have been shuffled to prevent cheating in the contest by visualizing
     the data and submitting a manually labeled CSV file.
 
-    The sanity check, hence, failed.
+    \begin{figure}[htbp]
+        \centerline{\includegraphics[width=0.55\textwidth]{Assets/sanity-check.png}}
+        \caption{Sanity check on the dataset}
+        \label{fig:sanitycheck}
+    \end{figure}
+
+    The sanity check (a trial shown in Fig.~\ref{fig:sanitycheck}), hence, failed.
+    Each selected sample did not conform to an image of a fruit.
+    This was a clear indication that the dataset was not in its original form and had been shuffled.
 
     \subsection{Data Preprocessing}
     \label{sec:dataprep}
@@ -162,6 +184,28 @@
     The images were standardized to have zero mean and unit variance to ensure that the features of the
     dataset were on the same scale and to prevent any feature from dominating the classifier.
 
+    \begin{figure}[htbp]
+        \centerline{\includegraphics[width=0.55\textwidth]{Assets/standardized.png}}
+        \caption{Standardization of the dataset}
+        \label{fig:standardization}
+    \end{figure}
+
+    As a check, two features were selected at random from the dataset and their distributions were verified.
+    The results are shown in Fig.~\ref{fig:standardization}.
+
+    \begin{equation}
+        \label{eq:standardization}
+        x_{i}^{*} = \frac{x_{i} - \mu_{x_{i}}}{\sigma_{x_{i}}}
+    \end{equation}
+
+    For each feature $x_{i}$ for $i = 1, 2, \dots, 4096$, $x_{i}^{*}$ represents the standardized value of the feature
+    and $\mu_{x_{i}}$ and $\sigma_{x_{i}}$ are the mean and standard deviation of $x_{i}$.
+    (\ref{eq:standardization}) was used to standardize the features.
+
+    It was noted that some features followed a gaussian distribution, while others were slightly skewed.
+    No firm concluion about the distribution of individual features could be drawn.
+    However, on multiple trials, it was clear that the features were on the same scale and the dataset was standardized.
+
     \subsubsection{Dimensionality Reduction}
     \label{sec:dimreduction}
     Owing to the sparsity of the dataset, dimensionality reduction was necessary to improve the performance of the classifier.
@@ -169,6 +213,32 @@
 
     With the features of these algorithms mentioned in Section \ref{sec:dimred}, it was concluded that an LDA after a PCA would be the best choice
     to extract the features that capture the most variance in the dataset and project them onto an even lower-dimensional space to increase inter-class separation.
+
+    \begin{enumerate}
+        \item \textit{PCA:}
+        The dimensionality of the data was reduced to 256, to explain upto 98.5\% of the variance in the dataset.
+
+        \begin{figure}[htbp]
+            \centerline{\includegraphics[width=0.55\textwidth]{Assets/pca.png}}
+            \caption{Explained variance by Principal Components}
+            \label{fig:pca}
+        \end{figure}
+
+        Fig.~\ref{fig:pca} shows the explained variance by the principal components of the dataset.
+        Attributing to the limited number of samples in the dataset, it was found that explaining any more variance led to overfitting.
+
+        \item \textit{LDA:}
+        A total of 18 features were extracted using LDA to minimize intra-class variance and increase the inter-class separation.
+
+        \begin{figure}[htbp]
+            \centerline{\includegraphics[width=0.50\textwidth]{Assets/lda.png}}
+            \caption{Inter-class separation by LDA}
+            \label{fig:lda}
+        \end{figure}
+
+        Fig.~\ref{fig:lda} shows the the inter-class separation.
+        The figure consists of three subplots, each showing the final distribution of six individual classes.
+    \end{enumerate}
 
     \subsubsection{Train-Test Split}
     The training data was finally split in an 80:20 ratio into training and validation sets.
@@ -199,18 +269,21 @@
     Although the dimensionality of the dataset was reduced, the random forest model was found to be overfitting on the training set
     and was unable to perform any better than the other models.
 
-    \subsubsection{(Gaussian) Naive Bayes}
+    \subsubsection{(Gaussian) Naive Bayes (GNB)}
     \label{sec:gnb}
     A probabilistic classifier based on Bayes' theorem with an assumption of independence between every pair of features.
-    Known for its accurate performance on small datasets, an attempt was made to transform the dataset into a Gaussian distribution using the Box-Cox transformation to use it.
-    However, the model was not fit for the dataset.
+    Some of the 18 final featues had slightly skewed dsitributions.
+    Hence, an attempt was made to transform the dataset into a Gaussian distribution using the Box-Cox transformation to use GNB as it is known for its accurate performance on small datasets.
+
+    The model was proved to be unfit for the dataset as an appropriate conversion could not be achieved.
 
     \subsubsection{Neural Networks}
     \label{sec:nn}
     A model having interconnected layers of mathematical functions (neurons) to apply activation functions on inputs from the previous layers to produce subsequent outputs.
-    The neural network was found to be one of the most suitable models for the task, as it was able to learn well on the limited dataset available.
+    Deep networks were found to be overfitting the small dataset.
+    A shallow neural network was found to be one of the most suitable models for the task, as it was able to learn well on the limited dataset available.
 
-    Surprisingly, the score of the neural network model dropped when the full testing dataset was used.
+    Surprisingly, the final score of the neural network model dropped when the full testing dataset was used.
     Hence, this model was not considered for the final evaluation.
 
     \subsubsection{Multinomial Logistic Regression}
@@ -257,8 +330,7 @@
     \section{The Final Model}
     \label{sec:finalmodel}
     The inferred hyperparameters for all algorithms were used to train the final model on the entire dataset.
-    The model was trained using a pipeline, which was then used to predict the labels of the testing dataset. \\
-    \vspace*{10pt}
+    The model was trained using a pipeline, which was then used to predict the labels of the testing dataset.
 
     \begin{figure}[htbp]
         \begin{tikzpicture}[node distance=2cm]
@@ -275,17 +347,18 @@
             \draw [->] (c) -- (e);
             \draw [->] (e) -- (f);
             \draw [->] (f) -- (g);
-            \label{fig:finalmodel}
         \end{tikzpicture}
         \caption{Pipeline used for the final model}
+        \label{fig:flow}
     \end{figure}
 
-    Fig. 1 shows the flow of final model used for the classification, including all the steps performed on the dataset.
+    Fig.~\ref{fig:flow} shows the flow of final model used for the classification, including all the steps performed on the dataset.
     The steps included in the enclosing box indicate the final pipeline.
+
+    A CSV file following the given format was generated as the prediction from the pipeline and submitted to the Kaggle competition for evaluation.
 
     \section{Conclusion}
     \label{sec:results}
-    A CSV file following the given format was generated as the prediction from the pipeline and submitted to the Kaggle competition for evaluation.
     The final model was able to achieve a score of 0.82692 on the testing dataset, leading to a rank of 5 out of 57 teams on the leaderboard.
 
     \section*{Acknowledgment}
@@ -299,6 +372,6 @@
 
     \begin{thebibliography}{00}
         \bibitem{b1} Dr Koteswar Rao Jerripothula, lecture notes, Statistical Machine Learning (Winter 2023), IIIT-Delhi.
-        \bibitem{b2} sklearn, \underline{https://scikit-learn.org/stable/}
+        \bibitem{b2} scikit-learn, \underline{https://scikit-learn.org/stable/}
     \end{thebibliography}
 \end{document}
